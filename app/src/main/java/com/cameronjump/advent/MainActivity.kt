@@ -3,6 +3,7 @@ package com.cameronjump.advent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,93 +15,122 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun partOne() {
-        val input = getString(R.string.day_02_input_a)
+        val input = getString(R.string.day_03_input_a)
 
-        val commands = mutableListOf<Command>()
-        val values = mutableListOf<Int>()
-        input.split(" ").forEach {
-            try {
-                val command = Command.valueOf(it.trim())
-                commands.add(command)
-            } catch (e: Exception) {
-                //
+        val inputs = input.split(" ").map { it.trim() }
+
+        var gammaRate = ""
+        var epsilonRate = ""
+
+        for (i in inputs[0].indices) {
+            var zeroCount = 0
+            var oneCount = 0
+
+            inputs.forEach {
+                val char = it[i]
+
+                if (char == '0') {
+                    zeroCount += 1
+                } else {
+                    oneCount += 1
+                }
             }
 
-            try {
-                val value = Integer.parseInt(it.trim())
-                values.add(value)
-            } catch (e: Exception) {
-                //
+            if (zeroCount == oneCount) {
+                throw Exception()
             }
+
+            gammaRate += if (zeroCount > oneCount) {
+                0
+            } else 1
+
+            epsilonRate += if (zeroCount > oneCount) {
+                1
+            } else 0
         }
 
-        var horizontal = 0
-        var depth = 0
+        val answer = Integer.parseInt(gammaRate, 2) * Integer.parseInt(epsilonRate, 2)
 
-        for (i in 0 until commands.size) {
-            val command = commands[i]
-
-            when (command) {
-                Command.down -> depth += values[i]
-                Command.forward -> horizontal += values[i]
-                Command.up -> depth -= values[i]
-            }
-        }
-
-        val answer = depth * horizontal
         findViewById<TextView>(R.id.firstAnswer).apply {
             text = answer.toString()
         }
     }
 
-    enum class Command {
-        down,
-        forward,
-        up
-    }
-
     private fun partTwo() {
-        val input = getString(R.string.day_02_input_a)
+        val input = getString(R.string.day_03_input_a)
 
-        val commands = mutableListOf<Command>()
-        val values = mutableListOf<Int>()
-        input.split(" ").forEach {
-            try {
-                val command = Command.valueOf(it.trim())
-                commands.add(command)
-            } catch (e: Exception) {
-                //
-            }
+        val inputs = input.split(" ").map { it.trim() }
 
-            try {
-                val value = Integer.parseInt(it.trim())
-                values.add(value)
-            } catch (e: Exception) {
-                //
-            }
-        }
+        val oxygen = goDownOxygen(inputs, 0)
+        val co2 = goDownCO2(inputs, 0)
 
-        var horizontal = 0
-        var depth = 0
-        var aim = 0
+        val answer = Integer.parseInt(oxygen, 2) * Integer.parseInt(co2, 2)
 
-        for (i in 0 until commands.size) {
-            val command = commands[i]
-
-            when (command) {
-                Command.down -> aim += values[i]
-                Command.forward -> {
-                    horizontal += values[i]
-                    depth += aim * values[i]
-                }
-                Command.up -> aim -= values[i]
-            }
-        }
-
-        val answer = depth * horizontal
         findViewById<TextView>(R.id.secondAnswer).apply {
             text = answer.toString()
         }
+    }
+
+    private fun goDownOxygen(inputs: List<String>, index: Int): String {
+        if (inputs.size == 1) {
+            return inputs[0]
+        }
+
+        var zeroCount = 0
+        var oneCount = 0
+
+        inputs.forEach {
+            val char = it[index]
+
+            if (char == '0') {
+                zeroCount += 1
+            } else {
+                oneCount += 1
+            }
+        }
+
+        return goDownOxygen(
+            inputs.toList().filter {
+                if (oneCount >= zeroCount) {
+                    it[index] == '1'
+                } else {
+                    it[index] == '0'
+                }
+            },
+            index + 1
+        )
+    }
+
+    private fun goDownCO2(inputs: List<String>, index: Int): String {
+        if (inputs.size == 1) {
+            return inputs[0]
+        }
+
+        var zeroCount = 0
+        var oneCount = 0
+
+        inputs.forEach {
+            val char = it[index]
+
+            if (char == '0') {
+                zeroCount += 1
+            } else {
+                oneCount += 1
+            }
+        }
+
+        return goDownCO2(
+            inputs.toList().filter {
+                if (oneCount == zeroCount) {
+                    it[index] == '0'
+                } else if (oneCount < zeroCount){
+                    it[index] == '1'
+                } else {
+                    it[index] == '0'
+                }
+            },
+            index + 1
+        )
     }
 
 }
